@@ -1,110 +1,12 @@
 /* ═══════════════════════════════════════════════════════════
-   Dashboard — Theme Aware
+   Dashboard — Theme Aware (works inside AppLayout)
    ═══════════════════════════════════════════════════════════ */
 
 .dashboard {
-  min-height: 100vh;
-  background: var(--surface);
   color: var(--text-primary);
 }
 
-/* ─── Header ─────────────────────────────────────────────── */
-
-.dashboard__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 32px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface-card);
-}
-
-.dashboard__brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--primary-500);
-}
-
-.dashboard__title {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
-  color: var(--text-primary);
-  letter-spacing: -0.3px;
-}
-
-.dashboard__user-area {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.dashboard__theme-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
-}
-
-.dashboard__theme-btn:hover {
-  background: var(--surface-hover);
-  border-color: var(--border-strong);
-  color: var(--text-primary);
-}
-
-.dashboard__user-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 1px;
-}
-
-.dashboard__user-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-}
-
-.dashboard__user-role {
-  font-size: 12px;
-  color: var(--primary-500);
-}
-
-.dashboard__logout-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: background 0.2s, color 0.2s, border-color 0.2s;
-}
-
-.dashboard__logout-btn:hover {
-  background: var(--error-bg);
-  border-color: var(--error-border);
-  color: var(--error-text);
-}
-
-/* ─── Content ────────────────────────────────────────────── */
-
-.dashboard__content {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 40px 32px;
-}
+/* ─── Welcome ────────────────────────────────────────────── */
 
 .dashboard__welcome h2 {
   font-size: 28px;
@@ -162,14 +64,6 @@
 /* ─── Responsive ─────────────────────────────────────────── */
 
 @media (max-width: 768px) {
-  .dashboard__header {
-    padding: 14px 20px;
-  }
-
-  .dashboard__content {
-    padding: 28px 20px;
-  }
-
   .dashboard__welcome h2 {
     font-size: 22px;
   }
@@ -182,9 +76,5 @@
 @media (max-width: 480px) {
   .dashboard__cards {
     grid-template-columns: 1fr;
-  }
-
-  .dashboard__user-info {
-    display: none;
   }
 }

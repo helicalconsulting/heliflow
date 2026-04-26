@@ -60,6 +60,8 @@
 .sap-login__logo-icon {
   width: 56px;
   height: 56px;
+  object-fit: contain;
+  border-radius: 8px;
 }
 
 .sap-login__brand-title {
@@ -175,6 +177,7 @@
 .sap-login__mobile-logo-icon {
   width: 36px;
   height: 36px;
+  object-fit: contain;
 }
 
 .sap-login__mobile-title {

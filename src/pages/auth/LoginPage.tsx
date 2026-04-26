@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { Eye, EyeOff, AlertCircle, Sun, Moon } from 'lucide-react';
+import heliflowLogo from '../../assets/heliflow.png';
 import './LoginPage.css';
 
 export default function LoginPage() {
@@ -48,13 +49,9 @@ export default function LoginPage() {
       {/* ── Left Panel: Branding ── */}
       <div className="sap-login__brand-panel">
         <div className="sap-login__brand-content">
-          {/* SAP-style hexagonal logo */}
+          {/* Heliflow brand logo */}
           <div className="sap-login__logo">
-            <svg viewBox="0 0 48 48" fill="none" className="sap-login__logo-icon">
-              <path d="M24 4L42 14V34L24 44L6 34V14L24 4Z" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.4)" strokeWidth="1.5"/>
-              <path d="M24 12L34 18V30L24 36L14 30V18L24 12Z" fill="rgba(255,255,255,0.25)" stroke="rgba(255,255,255,0.5)" strokeWidth="1"/>
-              <path d="M24 20L29 23V29L24 32L19 29V23L24 20Z" fill="white"/>
-            </svg>
+            <img src={heliflowLogo} alt="Heliflow" className="sap-login__logo-icon" />
           </div>
 
           <h1 className="sap-login__brand-title">Heliflow</h1>
@@ -104,11 +101,7 @@ export default function LoginPage() {
         <div className="sap-login__form-container">
           {/* Mobile logo (hidden on desktop) */}
           <div className="sap-login__mobile-logo">
-            <svg viewBox="0 0 48 48" fill="none" className="sap-login__mobile-logo-icon">
-              <path d="M24 4L42 14V34L24 44L6 34V14L24 4Z" fill="var(--sap-blue)" opacity="0.15"/>
-              <path d="M24 12L34 18V30L24 36L14 30V18L24 12Z" fill="var(--sap-blue)" opacity="0.3"/>
-              <path d="M24 20L29 23V29L24 32L19 29V23L24 20Z" fill="var(--sap-blue)"/>
-            </svg>
+            <img src={heliflowLogo} alt="Heliflow" className="sap-login__mobile-logo-icon" />
             <span className="sap-login__mobile-title">Heliflow</span>
           </div>
 
