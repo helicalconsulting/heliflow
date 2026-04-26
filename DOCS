@@ -23,11 +23,11 @@ src/
 │   ├── comparison/          # ComparisonPage
 │   ├── purchase-orders/     # POListPage, PODetailPage
 │   ├── vendors/             # VendorListPage, VendorDetailPage, VendorPortalPage
-│   ├── approvals/           # ApprovalInboxPage, ApprovalConfigPage
+│   ├── approvals/           # ApprovalInboxPage
 │   ├── documents/           # DocumentCenterPage
 │   ├── audit/               # AuditTrailPage
 │   ├── notifications/       # NotificationsPage
-│   └── admin/               # UsersPage, RolesPage, PermissionsPage
+│   └── admin/               # UsersPage, RolesPermissionsPage, ApprovalLevelsPage
 ├── services/                # API service layer (one file per domain)
 ├── hooks/                   # Custom React hooks
 ├── context/                 # AuthContext, ThemeContext, NotificationContext
@@ -42,10 +42,10 @@ src/
 |------------------------------|----------------------|--------------------------------|
 | `/login`                     | LoginPage            | Public                         |
 | `/dashboard`                 | DashboardPage        | All authenticated              |
-| `/rfq`                       | RFQListPage          | Staff, Manager, Admin          |
-| `/rfq/create`                | RFQCreatePage        | Staff, Manager                 |
-| `/rfq/:id`                   | RFQDetailPage        | Staff, Manager, Admin          |
-| `/rfq/:id/compare`           | ComparisonPage       | Manager, Admin                 |
+| `/rfq`                       | RFQListPage          | Procurement Manager, Admin     |
+| `/rfq/create`                | RFQCreatePage        | Procurement Manager, Admin     |
+| `/rfq/:id`                   | RFQDetailPage        | Procurement Manager, Admin     |
+| `/rfq/:id/compare`           | ComparisonPage       | Procurement Manager, Admin     |
 | `/quotations`                | QuotationListPage    | Staff, Manager                 |
 | `/quotations/submit/:rfqId`  | QuotationSubmitPage  | Vendor (portal)                |
 | `/purchase-orders`           | POListPage           | Manager, Finance, Admin        |
@@ -54,11 +54,11 @@ src/
 | `/vendors/:id`               | VendorDetailPage     | Manager, Admin                 |
 | `/vendor-portal`             | VendorPortalPage     | Vendor                         |
 | `/approvals`                 | ApprovalInboxPage    | Manager, Finance, Director     |
-| `/approvals/config`          | ApprovalConfigPage   | Admin                          |
 | `/documents`                 | DocumentCenterPage   | All authenticated              |
 | `/audit`                     | AuditTrailPage       | Admin                          |
 | `/admin/users`               | UsersPage            | Admin                          |
-| `/admin/roles`               | RolesPage            | Admin                          |
+| `/admin/roles-permissions`   | RolesPermissionsPage | Admin                          |
+| `/admin/approval-levels`     | ApprovalLevelsPage   | Admin                          |
 
 ---
 
@@ -413,9 +413,21 @@ When "Generate PO" is clicked on the RFQ detail page:
 - Add/Edit/Deactivate actions
 - Role assignment modal
 
-#### Admin — Roles (`/admin/roles`)
-- Roles list with permission matrix
-- Edit permissions per module (canView, canApprove, canCreate)
+#### Admin — Roles & Permissions (`/admin/roles-permissions`) — Single Page
+
+**Layout — Two sections on one page:**
+
+**Section 1 — Roles List (left/top):**
+- Table of all roles (e.g., Super Admin, Administrator, Manager, Finance Approver, Staff)
+- "+ Add Role" button → inline form or modal (Role Name input)
+- Click a role → highlights it and loads its permissions in Section 2
+- Edit/Delete actions per role
+
+**Section 2 — Permission Matrix (right/bottom):**
+- Shows permissions for the selected role
+- Grid layout: rows = modules (RFQ, Quotation, PO, Vendor, Approval, Documents, Audit), columns = actions (Can View, Can Create, Can Approve)
+- Each cell is a toggle switch
+- Changes auto-save or "Save Permissions" button at bottom
 - Data: Role, Permission
 
 #### Admin — Approval Levels (`/admin/approval-levels`)
@@ -656,7 +668,7 @@ export const rfqService = {
 ### 7.1 Happy Path: RFQ Creation → PO Generation
 
 ```
-1. Staff clicks "Create RFQ"
+1. Procurement Manager clicks "Create RFQ"
 2. Fills multi-step form (Basic Info → Items → Vendors → Review)
 3. Saves as DRAFT or clicks "Submit RFQ"
 4. Submit → status = SENT
@@ -668,10 +680,10 @@ export const rfqService = {
 6. Vendors submit Quotations (unit prices, lead time, terms, PDF)
    → RFQVendor.status = "SUBMITTED"
    → Vendor receives submission confirmation via email + portal
-7. Manager opens RFQ detail → clicks "Compare Quotations"
+7. Procurement Manager opens RFQ detail → clicks "Compare Quotations"
    → System builds RFQComparison + RFQComparisonRow records
    → Comparison matrix displayed
-8. Manager adjusts scoring weights → reviews results
+8. Procurement Manager adjusts scoring weights → reviews results
 9. Clicks "Award to Vendor X"
    → System creates RequestApproval for RFQ module
    → Approval chain begins
@@ -679,13 +691,16 @@ export const rfqService = {
     → Approves/Rejects/Returns with comments
     → ApprovalLog entry created at each step
 11. Final approval → RFQ.status = CLOSED
-    → Winning vendor notified via email + portal ("Congratulations, you have been awarded...")
-    → Non-winning vendors receive regret notification via email + portal
-12. Manager clicks "Generate PO" on RFQ detail page
+    → Awarded vendor receives notification via email + portal:
+      "Congratulations, your quotation for RFQ #XXXX has been approved."
+      Includes: awarded items, agreed price, next steps (PO to follow)
+    → Non-winning vendors receive regret notification via email + portal:
+      "Thank you for your quotation. Another vendor has been selected for RFQ #XXXX."
+12. Procurement Manager clicks "Generate PO" on RFQ detail page
     → PurchaseOrder created with status DRAFT
     → Winning quotation items copied to PurchaseOrderItem
     → PO approval workflow triggered
-13. PO approved → Manager clicks "Send to Vendor"
+13. PO approved → Procurement Manager clicks "Send to Vendor"
     → PDF PO generated
     → Vendor receives PO via BOTH:
       a) Email with PDF attachment + PO summary
