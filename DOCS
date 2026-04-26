@@ -1,0 +1,764 @@
+# Heliflow — Digital RFQ Workflow UI Documentation
+
+> **Tech Stack:** Vite + React 19 + TypeScript · Vanilla CSS · PostgreSQL (Prisma ORM)
+
+---
+
+## 1. Application Architecture
+
+### 1.1 Folder Structure
+
+```
+src/
+├── assets/                  # Images, icons, fonts
+├── components/
+│   ├── common/              # Button, Modal, Table, Badge, Card, Toast, Stepper
+│   ├── layout/              # Sidebar, TopBar, PageWrapper, MobileNav
+│   └── charts/              # ScoreRadar, ComparisonBar, PerformanceGauge
+├── pages/
+│   ├── auth/                # LoginPage, ForgotPasswordPage
+│   ├── dashboard/           # DashboardPage
+│   ├── rfq/                 # RFQListPage, RFQCreatePage, RFQDetailPage
+│   ├── quotations/          # QuotationListPage, QuotationSubmitPage
+│   ├── comparison/          # ComparisonPage
+│   ├── purchase-orders/     # POListPage, PODetailPage
+│   ├── vendors/             # VendorListPage, VendorDetailPage, VendorPortalPage
+│   ├── approvals/           # ApprovalInboxPage, ApprovalConfigPage
+│   ├── documents/           # DocumentCenterPage
+│   ├── audit/               # AuditTrailPage
+│   ├── notifications/       # NotificationsPage
+│   └── admin/               # UsersPage, RolesPage, PermissionsPage
+├── services/                # API service layer (one file per domain)
+├── hooks/                   # Custom React hooks
+├── context/                 # AuthContext, ThemeContext, NotificationContext
+├── types/                   # TypeScript interfaces mirroring Prisma models
+├── utils/                   # Formatters, validators, constants
+└── router/                  # Route definitions + guards
+```
+
+### 1.2 Routing Map
+
+| Route                        | Page                 | Role Access                    |
+|------------------------------|----------------------|--------------------------------|
+| `/login`                     | LoginPage            | Public                         |
+| `/dashboard`                 | DashboardPage        | All authenticated              |
+| `/rfq`                       | RFQListPage          | Staff, Manager, Admin          |
+| `/rfq/create`                | RFQCreatePage        | Staff, Manager                 |
+| `/rfq/:id`                   | RFQDetailPage        | Staff, Manager, Admin          |
+| `/rfq/:id/compare`           | ComparisonPage       | Manager, Admin                 |
+| `/quotations`                | QuotationListPage    | Staff, Manager                 |
+| `/quotations/submit/:rfqId`  | QuotationSubmitPage  | Vendor (portal)                |
+| `/purchase-orders`           | POListPage           | Manager, Finance, Admin        |
+| `/purchase-orders/:id`       | PODetailPage         | Manager, Finance, Admin        |
+| `/vendors`                   | VendorListPage       | Staff, Manager, Admin          |
+| `/vendors/:id`               | VendorDetailPage     | Manager, Admin                 |
+| `/vendor-portal`             | VendorPortalPage     | Vendor                         |
+| `/approvals`                 | ApprovalInboxPage    | Manager, Finance, Director     |
+| `/approvals/config`          | ApprovalConfigPage   | Admin                          |
+| `/documents`                 | DocumentCenterPage   | All authenticated              |
+| `/audit`                     | AuditTrailPage       | Admin                          |
+| `/admin/users`               | UsersPage            | Admin                          |
+| `/admin/roles`               | RolesPage            | Admin                          |
+
+---
+
+## 2. Design System
+
+### 2.1 Color Tokens
+
+```css
+:root {
+  /* Primary */
+  --primary-50: #eef2ff;   --primary-500: #6366f1;  --primary-700: #4338ca;
+  /* Success */
+  --success-50: #ecfdf5;   --success-500: #22c55e;  --success-700: #15803d;
+  /* Warning */
+  --warning-50: #fffbeb;   --warning-500: #f59e0b;  --warning-700: #b45309;
+  /* Danger */
+  --danger-50: #fef2f2;    --danger-500: #ef4444;   --danger-700: #b91c1c;
+  /* Neutral */
+  --neutral-50: #f9fafb;   --neutral-200: #e5e7eb;
+  --neutral-500: #6b7280;  --neutral-800: #1f2937;  --neutral-900: #111827;
+  /* Surface (dark mode aware) */
+  --surface: #ffffff;       --surface-elevated: #f9fafb;
+  --text-primary: #111827;  --text-secondary: #6b7280;
+  --border: #e5e7eb;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: #0f1117;          --surface-elevated: #1a1d2e;
+    --text-primary: #f3f4f6;     --text-secondary: #9ca3af;
+    --border: #2e303a;
+  }
+}
+```
+
+### 2.2 Typography
+
+Use **Inter** from Google Fonts.
+- `12px` — caption
+- `14px` — body-sm
+- `16px` — body
+- `20px` — h3
+- `24px` — h2
+- `32px` — h1
+
+### 2.3 Status Badge Mapping
+
+| Entity    | Status        | Color   |
+|-----------|---------------|---------|
+| RFQ       | `DRAFT`       | neutral |
+| RFQ       | `SENT`        | primary |
+| RFQ       | `IN_PROGRESS` | warning |
+| RFQ       | `CLOSED`      | success |
+| RFQ       | `CANCELLED`   | danger  |
+| Approval  | `PENDING`     | warning |
+| Approval  | `APPROVED`    | success |
+| Approval  | `REJECTED`    | danger  |
+| PO        | `DRAFT`       | neutral |
+| PO        | `APPROVED`    | success |
+| PO        | `SENT`        | primary |
+| Quotation | `SUBMITTED`   | primary |
+| Quotation | `ACCEPTED`    | success |
+| Quotation | `REJECTED`    | danger  |
+
+---
+
+## 3. End-to-End Workflow — Page Specs
+
+### Workflow Overview
+
+```
+Step 1: Create RFQ
+  → Step 2: Supplier Quotes
+    → Step 3: Compare & Score
+      → Step 4: Internal Approval
+        → Step 5: Award Supplier
+          → Step 6: Generate PO
+            → Step 7: Send PO
+```
+
+---
+
+### 3.1 Dashboard Page
+
+**KPI Cards (top row — 4 cards):**
+- Open RFQs (count)
+- Pending Approvals (count)
+- Active POs (count + total value)
+- Vendor Count
+
+**Middle row (2 columns):**
+- Left: "Recent RFQs" table (last 5, with status badges)
+- Right: "My Pending Approvals" list (clickable → approval detail)
+
+**Bottom row:**
+- Activity feed from AuditTrail (latest entries)
+
+**Data sources:** RFQ, RequestApproval, PurchaseOrder, Vendor, AuditTrail
+
+---
+
+### 3.2 RFQ Module
+
+#### 3.2.1 RFQ List Page (`/rfq`)
+
+| Element        | Spec                                                                                  |
+|----------------|---------------------------------------------------------------------------------------|
+| Header         | Title "Request for Quotations" + "Create RFQ" primary button                         |
+| Filters        | Status dropdown (All/Draft/Sent/In Progress/Closed/Cancelled), Date range, Search     |
+| Table columns  | RFQ Number, Title, Status (badge), Vendors Invited, Quotations Received, Created By, Date, Actions |
+| Actions        | View, Edit (draft only), Cancel                                                       |
+| Mobile         | Card layout with status chip, swipe actions                                           |
+
+#### 3.2.2 RFQ Create/Edit Page (`/rfq/create`) — Multi-step Form
+
+**Step 1 — Basic Info**
+- Fields: Title (text), Description (textarea), Expected Delivery Date (date picker)
+- Maps to: RFQ.title, RFQ.description
+
+**Step 2 — Line Items**
+- Dynamic table where user adds rows:
+  - Item Name | Description | Quantity | Unit (dropdown: pcs/kg/m/box) | Expected Date
+- "+ Add Item" button below table
+- Maps to: RFQItem records
+
+**Step 3 — Select Vendors**
+- Searchable multi-select from Vendor table (only isActive: true)
+- Shows vendor name, email, performance score (if available)
+- Selected vendors shown as removable chips
+- Maps to: RFQVendor records
+
+**Step 4 — Review & Submit**
+- Read-only summary of all inputs
+- "Save as Draft" (secondary) and "Submit RFQ" (primary) buttons
+- Submit triggers: status → SENT, creates AuditTrail entry
+- Vendor notification (dual-channel):
+  - **Email:** Each selected vendor receives an email with RFQ summary + direct submission link (`/quotations/submit/:rfqId`)
+  - **Portal:** In-app notification appears in vendor's Notification bell + RFQ appears on their Vendor Portal Dashboard
+
+#### 3.2.3 RFQ Detail Page (`/rfq/:id`)
+
+**Layout — Two-column on desktop:**
+
+Left column (65%):
+- RFQ header card (number, title, status badge, creator, date)
+- Line items table (from RFQItem)
+- Quotations received table (vendor name, total price, lead time, score, status badge)
+- Action bar: "Compare Quotations" button (enabled when ≥2 quotations), "Generate PO" (post-approval)
+
+Right column (35%):
+- Invited vendors list with submission status
+- Approval status timeline (vertical stepper showing each approval level)
+- Attachments section
+- Activity log (filtered audit trail for this RFQ)
+
+---
+
+### 3.3 Vendor Portal
+
+#### 3.3.1 Vendor Portal Dashboard (`/vendor-portal`)
+- Lists all RFQs the vendor is invited to, with status
+- "Submit Quotation" action for each open RFQ
+- RFQ card shows: RFQ Number, Title, Item count, Expected delivery date, Submission deadline
+- Status indicators: "New" (unread), "In Progress" (draft saved), "Submitted"
+
+**How vendors receive RFQs (dual-channel):**
+1. **Email notification** — vendor receives email containing:
+   - RFQ number & title
+   - Summary of items requested
+   - Submission deadline
+   - "Submit Quotation" CTA button linking to `/quotations/submit/:rfqId`
+2. **Portal notification** — simultaneously:
+   - In-app notification added to vendor's Notification bell (unread badge)
+   - RFQ automatically appears on Vendor Portal Dashboard with "New" tag
+
+#### 3.3.2 Quotation Submission Page (`/quotations/submit/:rfqId`)
+
+**Form fields per RFQ line item:**
+
+| Field       | Type              | Maps To                   |
+|-------------|-------------------|---------------------------|
+| Unit Price  | Currency input    | QuotationItem.unitPrice   |
+| Total Price | Auto-calc (qty×p) | QuotationItem.totalPrice  |
+
+**Global fields:**
+- Lead Time (days) → Quotation.leadTimeDays
+- Payment Terms (dropdown: Net 30/Net 60/Net 90/Custom) → Quotation.paymentTerms
+- Attachment upload (PDF quotation) → Attachment
+- Total quotation value (auto-sum) → Quotation.totalPrice
+
+**Actions:** "Save Draft" / "Submit Quotation"
+
+---
+
+### 3.4 Comparison & Evaluation Page (`/rfq/:id/compare`)
+
+**Bid Comparison Matrix — Full-width responsive table:**
+
+| Criteria         | Vendor A   | Vendor B   | Vendor C   |
+|------------------|------------|------------|------------|
+| Total Price      | ₹1,20,000  | ₹1,35,000  | ₹1,15,000  |
+| Lead Time        | 14 days    | 10 days    | 18 days    |
+| Payment Terms    | Net 30     | Net 60     | Net 30     |
+| Quality Score    | 4.2/5      | 3.8/5      | 4.5/5      |
+| **Weighted Score** | **82**   | **76**     | **85 ★**   |
+
+**Features:**
+- Lowest value per row highlighted in green
+- Star icon on the highest weighted score
+- Configurable weight sliders (Price 50%, Lead Time 30%, Quality 20%)
+- "Award to [Vendor]" button on the winning column
+- Data source: RFQComparison + RFQComparisonRow
+
+**Scoring Logic Panel (collapsible sidebar):**
+- Weight configuration: Price %, Lead Time %, Quality %
+- Toggle: "L1 (Lowest Cost)" vs "Weighted Scoring"
+- Historical performance toggle (pulls from VendorPerformance)
+
+---
+
+### 3.5 Approval Workflow
+
+#### 3.5.1 Approval Inbox (`/approvals`)
+
+**Layout:**
+- Tab bar: "Pending" | "Approved" | "Rejected" | "All"
+- Each item shows: Module name, Reference (RFQ#/PO#), Requester, Amount, Date, Level badge
+- Click opens approval detail modal
+
+**Approval Detail Modal:**
+- Summary of the item being approved (RFQ or PO details)
+- Approval chain visualization (vertical stepper):
+  - Level 1: Procurement Manager ✅
+  - Level 2: Finance → **You are here** (highlighted)
+  - Level 3: Director ⏳
+- Action buttons: "Approve" (success) | "Reject" (danger) | "Return" (warning)
+- Comments textarea (required for reject/return)
+- Data: RequestApproval, ApprovalLevel, ApprovalLog
+
+#### 3.5.2 Approval Levels Management (`/admin/approval-levels`) — Admin Only
+
+> **Key principle:** Approval levels are 100% dynamic. Nothing is hardcoded.
+> The Admin configures how many levels exist, which roles approve at each level,
+> and under what conditions extra levels are triggered.
+
+**Page Layout:**
+
+**Top bar:**
+- Module selector tabs: "RFQ" | "Purchase Order" (extensible to future modules)
+- "+ Add Level" primary button
+- Summary cards per module: Total levels configured, Active rules count
+
+**Main area — Approval Levels Table (per selected module):**
+
+| Column        | Description                                                |
+|---------------|------------------------------------------------------------|
+| Order         | Drag handle for reordering (drag-and-drop via @dnd-kit)    |
+| Level Number  | Auto-assigned based on order (1, 2, 3...)                  |
+| Required Role | Dropdown: select from existing roles (from Role table)     |
+| Condition     | Optional threshold rule (e.g., "Amount > ₹5,00,000")      |
+| Status        | Active/Inactive toggle                                     |
+| Actions       | Edit, Delete (with confirm dialog)                         |
+
+**Add/Edit Level Modal:**
+- Module (pre-filled from selected tab, read-only)
+- Required Role (dropdown populated from Role table)
+- Condition type: "Always" (default) or "Conditional"
+  - If Conditional → Amount threshold input (e.g., "> ₹5,00,000")
+- Active toggle (default: on)
+
+**Dynamic behavior:**
+- When Admin drags to reorder → `levelNumber` auto-recalculates for all levels in that module
+- Conditional levels only activate when the threshold is met (e.g., Director level only appears if PO amount > ₹5,00,000)
+- Admin can add unlimited levels per module — system is not restricted to 2 or 3
+
+**Data:** ApprovalLevel table
+- `module`: "RFQ" | "PO" (string, extensible)
+- `levelNumber`: integer, auto-managed by reorder
+- `requiredRole`: string, maps to Role.roleName
+
+---
+
+### 3.6 Purchase Orders
+
+#### 3.6.1 PO List Page (`/purchase-orders`)
+
+| Column       | Source                              |
+|--------------|-------------------------------------|
+| PO Number    | PurchaseOrder.poNumber              |
+| RFQ Ref      | RFQ.rfqNumber (via relation)        |
+| Vendor       | Vendor.name                         |
+| Total Amount | PurchaseOrder.totalAmount           |
+| Status       | Badge                               |
+| Created      | PurchaseOrder.createdAt             |
+| Actions      | View, Approve, Send to Vendor       |
+
+#### 3.6.2 PO Detail Page (`/purchase-orders/:id`)
+
+- PO header: number, status, vendor info, dates
+- Line items table: Item Name, Qty, Unit Price, Total
+- Linked RFQ reference (clickable)
+- Approval status timeline
+- "Send to Vendor" action (generates PDF, sends email + portal notification)
+- "Download PDF" button
+- Data: PurchaseOrder, PurchaseOrderItem
+
+**PO Auto-Generation Logic:**
+When "Generate PO" is clicked on the RFQ detail page:
+1. System creates PurchaseOrder with status DRAFT
+2. Copies winning quotation items → PurchaseOrderItem
+3. Links to RFQ and Vendor
+4. Triggers PO approval workflow via RequestApproval
+
+---
+
+### 3.7 Vendor Management
+
+#### 3.7.1 Vendor List (`/vendors`)
+- Searchable, filterable table
+- Columns: Name, Email, Active (toggle), Performance Score (gauge), RFQs Participated, Actions
+- "Add Vendor" button → modal form (Name, Email fields)
+
+#### 3.7.2 Vendor Detail (`/vendors/:id`)
+- Profile card: name, email, status
+- Performance dashboard:
+  - Score gauges: Quality, Delivery, Price, Overall (from VendorPerformance)
+  - Historical feedback table (from OrderFeedback)
+- RFQ participation history
+- Quotation history with win/loss ratio
+
+---
+
+### 3.8 Supporting Pages
+
+#### Document Center (`/documents`)
+- Filterable list by module (RFQ/PO/Quotation) and file type
+- Upload zone (drag-and-drop), preview modal
+- Data: Attachment
+
+#### Notifications (`/notifications`)
+- List with read/unread state, grouped by date
+- Click marks as read and navigates to reference
+- Data: Notification
+
+#### Audit Trail (`/audit`)
+- Filterable log: User, Action, Module, Timestamp
+- Export to CSV button
+- Data: AuditTrail
+
+#### Admin — Users (`/admin/users`)
+- User list table with role badges
+- Add/Edit/Deactivate actions
+- Role assignment modal
+
+#### Admin — Roles (`/admin/roles`)
+- Roles list with permission matrix
+- Edit permissions per module (canView, canApprove, canCreate)
+- Data: Role, Permission
+
+#### Admin — Approval Levels (`/admin/approval-levels`)
+- Dynamic approval level management (see Section 3.5.2 for full spec)
+- Admin creates/edits/deletes/reorders levels per module
+- Conditional threshold rules (value-based routing)
+- No hardcoded levels — everything is configurable
+- Data: ApprovalLevel, Role
+
+---
+
+## 4. Shared Components Spec
+
+### 4.1 Component Library
+
+| Component          | Key Props                                    | Usage                          |
+|--------------------|----------------------------------------------|--------------------------------|
+| `StatusBadge`      | `status`, `module`                           | Colored pill badge             |
+| `DataTable`        | `columns`, `data`, `sortable`, `filterable`  | Reusable sortable table        |
+| `StepperForm`      | `steps[]`, `activeStep`, `onStepChange`      | Multi-step form wizard         |
+| `ApprovalTimeline` | `levels[]`, `currentLevel`                   | Vertical stepper for approvals |
+| `Modal`            | `open`, `onClose`, `title`, `size`           | Slide-up mobile, centered desktop |
+| `FileUpload`       | `accept`, `maxSize`, `onUpload`              | Drag-and-drop + click upload   |
+| `SearchSelect`     | `options`, `onChange`, `multi`                | Searchable dropdown with chips |
+| `KPICard`          | `title`, `value`, `trend`, `icon`            | Dashboard metric card          |
+| `EmptyState`       | `icon`, `title`, `description`, `action`     | Shown when lists are empty     |
+| `Toast`            | `type`, `message`, `duration`                | Success/Error/Warning alerts   |
+| `ConfirmDialog`    | `title`, `message`, `onConfirm`              | Destructive action confirm     |
+
+### 4.2 Layout Components
+
+- **Sidebar:** Collapsible, icon + label nav items, active state highlight, grouped sections
+- **TopBar:** Breadcrumb, notification bell (with unread count badge), user avatar dropdown
+- **PageWrapper:** Consistent padding, max-width constraint, page title + subtitle area
+
+---
+
+## 5. TypeScript Interfaces
+
+```typescript
+// types/index.ts
+
+type RFQStatus = 'DRAFT' | 'SENT' | 'IN_PROGRESS' | 'CLOSED' | 'CANCELLED';
+type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  fullName: string;
+  companyCode: string;
+  department?: string;
+  phone?: string;
+  isActive: boolean;
+  lastLoginAt?: string;
+  createdAt: string;
+}
+
+interface RFQ {
+  id: number;
+  rfqNumber: string;
+  title: string;
+  description?: string;
+  createdBy: number;
+  status: RFQStatus;
+  createdAt: string;
+  creator?: User;
+  items?: RFQItem[];
+  vendors?: RFQVendor[];
+  quotations?: Quotation[];
+}
+
+interface RFQItem {
+  id: number;
+  rfqId: number;
+  itemName: string;
+  description?: string;
+  quantity: number;
+  unit?: string;
+  expectedDate?: string;
+}
+
+interface RFQVendor {
+  id: number;
+  rfqId: number;
+  vendorId: number;
+  status: string;
+  vendor?: Vendor;
+}
+
+interface Quotation {
+  id: number;
+  rfqId: number;
+  vendorId: number;
+  totalPrice: number;
+  leadTimeDays?: number;
+  paymentTerms?: string;
+  score?: number;
+  status: string;
+  submittedAt: string;
+  vendor?: Vendor;
+  items?: QuotationItem[];
+}
+
+interface QuotationItem {
+  id: number;
+  quotationId: number;
+  rfqItemId: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+interface Vendor {
+  id: number;
+  name: string;
+  email: string;
+  createdBy: number;
+  isActive: boolean;
+  performance?: VendorPerformance;
+}
+
+interface VendorPerformance {
+  id: number;
+  vendorId: number;
+  avgQuality: number;
+  avgDelivery: number;
+  avgPriceScore: number;
+  overallScore: number;
+}
+
+interface PurchaseOrder {
+  id: number;
+  poNumber: string;
+  rfqId: number;
+  vendorId: number;
+  totalAmount: number;
+  status: string;
+  createdAt: string;
+  rfq?: RFQ;
+  vendor?: Vendor;
+  items?: PurchaseOrderItem[];
+}
+
+interface PurchaseOrderItem {
+  id: number;
+  poId: number;
+  itemName: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+interface ApprovalLevel {
+  id: number;
+  module: string;
+  levelNumber: number;
+  requiredRole: string;
+}
+
+interface RequestApproval {
+  id: number;
+  module: string;
+  referenceId: number;
+  levelId: number;
+  status: ApprovalStatus;
+  approverId?: number;
+  level?: ApprovalLevel;
+  approver?: User;
+}
+
+interface ApprovalLog {
+  id: number;
+  requestId: number;
+  levelId: number;
+  approverId: number;
+  action: string;
+  comments?: string;
+  createdAt: string;
+}
+
+interface Notification {
+  id: number;
+  userId: number;
+  title: string;
+  message?: string;
+  isRead: boolean;
+}
+
+interface AuditTrail {
+  id: number;
+  userId?: number;
+  action: string;
+  module?: string;
+  createdAt: string;
+  user?: User;
+}
+```
+
+---
+
+## 6. API Service Layer Pattern
+
+```typescript
+// services/rfqService.ts
+const API = import.meta.env.VITE_API_URL;
+
+export const rfqService = {
+  getAll:    (filters?) => fetch(`${API}/rfq?${new URLSearchParams(filters)}`),
+  getById:   (id: number) => fetch(`${API}/rfq/${id}`),
+  create:    (data: CreateRFQPayload) =>
+               fetch(`${API}/rfq`, { method: 'POST', body: JSON.stringify(data) }),
+  update:    (id: number, data: UpdateRFQPayload) =>
+               fetch(`${API}/rfq/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  cancel:    (id: number) =>
+               fetch(`${API}/rfq/${id}/cancel`, { method: 'PATCH' }),
+  compare:   (id: number) => fetch(`${API}/rfq/${id}/compare`),
+  award:     (id: number, vendorId: number) =>
+               fetch(`${API}/rfq/${id}/award`, { method: 'POST', body: JSON.stringify({ vendorId }) }),
+};
+```
+
+**Service files needed:**
+- authService — login, logout, refresh token
+- rfqService — CRUD + compare + award
+- quotationService — submit, list by RFQ
+- vendorService — CRUD + performance
+- poService — CRUD + send to vendor + PDF
+- approvalService — inbox, approve/reject, config levels
+- documentService — upload, list, download
+- notificationService — list, mark read
+- auditService — list with filters + export
+- adminService — users CRUD, roles, permissions
+
+---
+
+## 7. Key Interaction Flows
+
+### 7.1 Happy Path: RFQ Creation → PO Generation
+
+```
+1. Staff clicks "Create RFQ"
+2. Fills multi-step form (Basic Info → Items → Vendors → Review)
+3. Saves as DRAFT or clicks "Submit RFQ"
+4. Submit → status = SENT
+   → System creates AuditTrail entry
+   → Each vendor receives notification via BOTH:
+     a) Email (with RFQ summary + direct submission link)
+     b) Portal (in-app notification + RFQ appears on vendor dashboard)
+5. Vendors open portal (or click email link) → see RFQ details
+6. Vendors submit Quotations (unit prices, lead time, terms, PDF)
+   → RFQVendor.status = "SUBMITTED"
+   → Vendor receives submission confirmation via email + portal
+7. Manager opens RFQ detail → clicks "Compare Quotations"
+   → System builds RFQComparison + RFQComparisonRow records
+   → Comparison matrix displayed
+8. Manager adjusts scoring weights → reviews results
+9. Clicks "Award to Vendor X"
+   → System creates RequestApproval for RFQ module
+   → Approval chain begins
+10. Each approver sees request in Approval Inbox
+    → Approves/Rejects/Returns with comments
+    → ApprovalLog entry created at each step
+11. Final approval → RFQ.status = CLOSED
+    → Winning vendor notified via email + portal ("Congratulations, you have been awarded...")
+    → Non-winning vendors receive regret notification via email + portal
+12. Manager clicks "Generate PO" on RFQ detail page
+    → PurchaseOrder created with status DRAFT
+    → Winning quotation items copied to PurchaseOrderItem
+    → PO approval workflow triggered
+13. PO approved → Manager clicks "Send to Vendor"
+    → PDF PO generated
+    → Vendor receives PO via BOTH:
+      a) Email with PDF attachment + PO summary
+      b) Portal notification + PO visible on vendor portal dashboard
+14. Supplier acknowledges receipt in portal (click "Acknowledge" button)
+    → Acknowledgement logged in AuditTrail
+    → Internal team notified of vendor acknowledgement
+```
+
+### 7.2 Approval Routing Logic (Dynamic — Admin Configured)
+
+> These levels are NOT hardcoded. Admin configures them at `/admin/approval-levels`.
+> Below is an example default configuration:
+
+```
+Module: PO (Purchase Order)
+  Level 1: Procurement Manager        [Always]
+  Level 2: Finance Approver            [Always]
+  Level 3: Director                    [Conditional: Amount > ₹5,00,000]
+
+Module: RFQ
+  Level 1: Procurement Manager         [Always]
+  Level 2: Manager                     [Conditional: Amount > ₹2,00,000]
+```
+
+**How it works at runtime:**
+1. When an RFQ/PO triggers approval, system reads ApprovalLevel table for that module
+2. Filters out conditional levels whose threshold is not met
+3. Creates RequestApproval records for each applicable level
+4. Routes to the first level → on approval, moves to next level
+5. If all levels approved → item status changes to APPROVED
+6. Admin can add/remove/reorder levels at any time — changes apply to future requests only
+
+---
+
+## 8. Mobile Responsiveness Strategy
+
+| Breakpoint     | Layout                                                    |
+|----------------|-----------------------------------------------------------|
+| `≥1024px`      | Full sidebar + multi-column layouts                       |
+| `768px–1023px` | Collapsed sidebar (icons only), 2-col → 1-col            |
+| `<768px`       | Bottom nav bar, card-based lists, slide-up modals, FAB    |
+
+**Mobile-specific patterns:**
+- Tables → card stacks with key info + expandable details
+- Multi-step forms → full-screen steps with progress bar at top
+- Comparison matrix → horizontal scroll with sticky first column
+- Approval actions → floating action bar (Approve / Reject / Return)
+- Modals → slide up from bottom, full-width
+
+---
+
+## 9. Implementation Priority
+
+| Phase     | Scope                                          | Description                        |
+|-----------|------------------------------------------------|------------------------------------|
+| **Phase 1** | Login, Dashboard, RFQ List/Create/Detail     | Core workflow foundation           |
+| **Phase 2** | Vendor Portal, Quotation Submission          | Enables supplier interaction       |
+| **Phase 3** | Comparison Page, Scoring Engine              | Evaluation capability              |
+| **Phase 4** | Approval Inbox/Config, PO Generation         | Governance & output                |
+| **Phase 5** | Vendor Management, Documents, Audit, Notifs  | Supporting modules                 |
+| **Phase 6** | Admin (Users, Roles, Permissions)             | System administration              |
+
+---
+
+## 10. Dependencies to Install
+
+```bash
+npm install react-router-dom                            # Routing
+npm install @tanstack/react-query                       # Server state management
+npm install react-hook-form zod @hookform/resolvers     # Forms + validation
+npm install recharts                                    # Charts for dashboard/performance
+npm install date-fns                                    # Date formatting
+npm install lucide-react                                # Icon library
+npm install @dnd-kit/core @dnd-kit/sortable             # Drag-and-drop (approval reorder)
+```
