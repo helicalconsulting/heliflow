@@ -1,9 +1,11 @@
 import { useAuth } from '../../context/AuthContext';
-import { LogOut, LayoutDashboard } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
+import { LogOut, LayoutDashboard, Sun, Moon } from 'lucide-react';
 import './DashboardPage.css';
 
 export default function DashboardPage() {
   const { user, roles, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
 
   return (
     <div className="dashboard">
@@ -13,6 +15,14 @@ export default function DashboardPage() {
           <h1 className="dashboard__title">Heliflow</h1>
         </div>
         <div className="dashboard__user-area">
+          <button
+            className="dashboard__theme-btn"
+            onClick={toggleTheme}
+            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            aria-label="Toggle theme"
+          >
+            {isDark ? <Sun size={18} /> : <Moon size={18} />}
+          </button>
           <div className="dashboard__user-info">
             <span className="dashboard__user-name">{user?.fullName}</span>
             <span className="dashboard__user-role">

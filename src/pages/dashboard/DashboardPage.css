@@ -1,9 +1,11 @@
-/* ─── Dashboard ─────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   Dashboard — Theme Aware
+   ═══════════════════════════════════════════════════════════ */
 
 .dashboard {
   min-height: 100vh;
-  background: var(--neutral-900);
-  color: #fff;
+  background: var(--surface);
+  color: var(--text-primary);
 }
 
 /* ─── Header ─────────────────────────────────────────────── */
@@ -13,30 +15,49 @@
   align-items: center;
   justify-content: space-between;
   padding: 16px 32px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-card);
 }
 
 .dashboard__brand {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--primary-400, #818cf8);
+  color: var(--primary-500);
 }
 
 .dashboard__title {
   font-size: 20px;
   font-weight: 700;
   margin: 0;
-  color: #fff;
+  color: var(--text-primary);
   letter-spacing: -0.3px;
 }
 
 .dashboard__user-area {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+}
+
+.dashboard__theme-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.dashboard__theme-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
 }
 
 .dashboard__user-info {
@@ -49,12 +70,12 @@
 .dashboard__user-name {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-primary);
 }
 
 .dashboard__user-role {
   font-size: 12px;
-  color: var(--primary-400, #818cf8);
+  color: var(--primary-500);
 }
 
 .dashboard__logout-btn {
@@ -63,18 +84,18 @@
   justify-content: center;
   width: 38px;
   height: 38px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   background: transparent;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .dashboard__logout-btn:hover {
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #fca5a5;
+  background: var(--error-bg);
+  border-color: var(--error-border);
+  color: var(--error-text);
 }
 
 /* ─── Content ────────────────────────────────────────────── */
@@ -89,12 +110,12 @@
   font-size: 28px;
   font-weight: 700;
   margin: 0 0 8px;
-  color: #fff;
+  color: var(--text-primary);
 }
 
 .dashboard__welcome p {
   font-size: 15px;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--text-secondary);
   margin: 0 0 36px;
 }
 
@@ -108,24 +129,25 @@
 
 .dashboard__card {
   padding: 24px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  border: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: background 0.2s, border-color 0.2s;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+  box-shadow: var(--shadow-sm);
 }
 
 .dashboard__card:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(99, 102, 241, 0.25);
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-md);
 }
 
 .dashboard__card-label {
   font-size: 13px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -133,7 +155,7 @@
 .dashboard__card-value {
   font-size: 36px;
   font-weight: 700;
-  color: #fff;
+  color: var(--text-primary);
   letter-spacing: -1px;
 }
 
