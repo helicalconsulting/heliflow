@@ -17,7 +17,6 @@ import PurchaseOrdersPage from './pages/purchase-orders/PurchaseOrdersPage';
 import DocumentsPage from './pages/documents/DocumentsPage';
 import NotificationsPage from './pages/notifications/NotificationsPage';
 import AuditTrailPage from './pages/audit/AuditTrailPage';
-import VendorPortalLayout from './components/layout/VendorPortalLayout';
 import VendorDashboard from './pages/vendor/VendorDashboard';
 import VendorRFQsPage from './pages/vendor/VendorRFQsPage';
 import VendorQuotationsPage from './pages/vendor/VendorQuotationsPage';
