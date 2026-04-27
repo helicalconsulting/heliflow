@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import {
   Search,
   ClipboardList,
@@ -15,6 +15,13 @@ import {
   Filter,
   ChevronLeft,
   ChevronRight,
+  GitCompareArrows,
+  Crown,
+  X,
+  ChevronDown,
+  TrendingDown,
+  TrendingUp,
+  ArrowDownNarrowWide,
 } from 'lucide-react';
 import './QuotationsPage.css';
 
@@ -104,6 +111,52 @@ export default function QuotationsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const perPage = 8;
 
+  // ── Compare feature state ──
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [compareSearch, setCompareSearch] = useState('');
+  const [selectedRFQ, setSelectedRFQ] = useState<string | null>(null);
+  const [compareDropdownOpen, setCompareDropdownOpen] = useState(false);
+  const compareDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (compareDropdownRef.current && !compareDropdownRef.current.contains(e.target as Node)) {
+        setCompareDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Unique RFQ numbers
+  const uniqueRFQs = useMemo(() => {
+    const rfqSet = new Set(MOCK_QUOTATIONS.map(q => q.rfqNumber));
+    return Array.from(rfqSet).sort();
+  }, []);
+
+  // Filtered RFQ list for compare search
+  const filteredRFQs = useMemo(() => {
+    if (!compareSearch.trim()) return uniqueRFQs;
+    return uniqueRFQs.filter(r => r.toLowerCase().includes(compareSearch.toLowerCase()));
+  }, [compareSearch, uniqueRFQs]);
+
+  // Suppliers for selected RFQ
+  const compareSuppliers = useMemo(() => {
+    if (!selectedRFQ) return [];
+    return MOCK_QUOTATIONS.filter(q => q.rfqNumber === selectedRFQ);
+  }, [selectedRFQ]);
+
+  // Best values for highlighting
+  const bestValues = useMemo(() => {
+    if (compareSuppliers.length === 0) return { price: 0, lead: 0, score: 0 };
+    return {
+      price: Math.min(...compareSuppliers.map(s => s.totalPriceNum)),
+      lead: Math.min(...compareSuppliers.map(s => s.leadTimeDays)),
+      score: Math.max(...compareSuppliers.map(s => s.score)),
+    };
+  }, [compareSuppliers]);
+
   // Summary counts
   const summary = useMemo(() => {
     const total = MOCK_QUOTATIONS.length;
@@ -140,7 +193,268 @@ export default function QuotationsPage() {
           <h1>Quotations</h1>
           <p>Review and compare vendor quotations across your RFQs</p>
         </div>
+        <button
+          className={`quot-compare-toggle ${compareOpen ? 'quot-compare-toggle--active' : ''}`}
+          onClick={() => setCompareOpen(prev => !prev)}
+        >
+          <GitCompareArrows size={16} />
+          Compare Suppliers
+        </button>
       </div>
+
+      {/* ── Supplier Comparison Panel ─────────────────────── */}
+      {compareOpen && (
+        <div className="quot-compare">
+          <div className="quot-compare__header">
+            <div className="quot-compare__title">
+              <GitCompareArrows size={20} />
+              <div>
+                <h2>Supplier Comparison</h2>
+                <p>Select an RFQ to compare all supplier quotations side-by-side</p>
+              </div>
+            </div>
+            <button className="quot-compare__close" onClick={() => setCompareOpen(false)}>
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* RFQ Search Dropdown */}
+          <div className="quot-compare__search-area">
+            <div className="quot-compare__dropdown" ref={compareDropdownRef}>
+              <button
+                className="quot-compare__dropdown-trigger"
+                onClick={() => setCompareDropdownOpen(prev => !prev)}
+              >
+                <Search size={14} />
+                <span className={selectedRFQ ? '' : 'quot-compare__placeholder'}>
+                  {selectedRFQ || 'Search & select RFQ number...'}
+                </span>
+                <ChevronDown size={14} className={`quot-compare__chevron ${compareDropdownOpen ? 'quot-compare__chevron--open' : ''}`} />
+              </button>
+
+              {compareDropdownOpen && (
+                <div className="quot-compare__dropdown-menu">
+                  <div className="quot-compare__dropdown-search">
+                    <Search size={13} />
+                    <input
+                      type="text"
+                      placeholder="Type to search RFQ..."
+                      value={compareSearch}
+                      onChange={e => setCompareSearch(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+                  <div className="quot-compare__dropdown-list">
+                    {filteredRFQs.length > 0 ? (
+                      filteredRFQs.map(rfq => {
+                        const count = MOCK_QUOTATIONS.filter(q => q.rfqNumber === rfq).length;
+                        return (
+                          <button
+                            key={rfq}
+                            className={`quot-compare__dropdown-item ${selectedRFQ === rfq ? 'quot-compare__dropdown-item--active' : ''}`}
+                            onClick={() => {
+                              setSelectedRFQ(rfq);
+                              setCompareDropdownOpen(false);
+                              setCompareSearch('');
+                            }}
+                          >
+                            <span className="quot-compare__dropdown-rfq">{rfq}</span>
+                            <span className="quot-compare__dropdown-count">{count} supplier{count > 1 ? 's' : ''}</span>
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <div className="quot-compare__dropdown-empty">No RFQs found</div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+            {selectedRFQ && (
+              <div className="quot-compare__rfq-badge">
+                <span>{selectedRFQ}</span>
+                <span className="quot-compare__rfq-count">{compareSuppliers.length} suppliers</span>
+              </div>
+            )}
+          </div>
+
+          {/* Comparison Matrix */}
+          {selectedRFQ && compareSuppliers.length > 0 ? (
+            <div className="quot-compare__matrix-wrap">
+              <table className="quot-compare__matrix">
+                <thead>
+                  <tr>
+                    <th className="quot-compare__param-header">
+                      <div className="quot-compare__param-inner">
+                        <ArrowDownNarrowWide size={13} />
+                        Parameter
+                      </div>
+                    </th>
+                    {compareSuppliers.map(s => (
+                      <th key={s.id} className="quot-compare__supplier-header">
+                        <div className="quot-compare__supplier-card">
+                          <span className={`quot-compare__avatar quot-table__vendor-avatar--${s.avatarMod}`}>
+                            {s.vendorInitials}
+                          </span>
+                          <div className="quot-compare__supplier-info">
+                            <span className="quot-compare__supplier-name">{s.vendorName}</span>
+                            <span className="quot-compare__supplier-email">{s.vendorEmail}</span>
+                          </div>
+                        </div>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Total Price */}
+                  <tr>
+                    <td className="quot-compare__param-label">
+                      <div className="quot-compare__param-inner">
+                        <span className="quot-compare__param-icon quot-compare__param-icon--price"><TrendingDown size={14} /></span>
+                        Total Price
+                      </div>
+                    </td>
+                    {compareSuppliers.map(s => (
+                      <td key={s.id} className={`quot-compare__value ${s.totalPriceNum === bestValues.price ? 'quot-compare__value--best' : ''}`}>
+                        <div className="quot-compare__value-wrap">
+                          <span className="quot-compare__value-main">{s.totalPrice}</span>
+                          {s.totalPriceNum === bestValues.price && (
+                            <span className="quot-compare__best-chip"><Crown size={11} /> Best</span>
+                          )}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                  {/* Lead Time */}
+                  <tr>
+                    <td className="quot-compare__param-label">
+                      <div className="quot-compare__param-inner">
+                        <span className="quot-compare__param-icon quot-compare__param-icon--lead"><Clock size={14} /></span>
+                        Lead Time
+                      </div>
+                    </td>
+                    {compareSuppliers.map(s => (
+                      <td key={s.id} className={`quot-compare__value ${s.leadTimeDays === bestValues.lead ? 'quot-compare__value--best' : ''}`}>
+                        <div className="quot-compare__value-wrap">
+                          <span className="quot-compare__value-main">{s.leadTimeDays} days</span>
+                          {s.leadTimeDays === bestValues.lead && (
+                            <span className="quot-compare__best-chip"><Crown size={11} /> Best</span>
+                          )}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                  {/* Payment Terms */}
+                  <tr>
+                    <td className="quot-compare__param-label">
+                      <div className="quot-compare__param-inner">
+                        <span className="quot-compare__param-icon quot-compare__param-icon--terms"><FileText size={14} /></span>
+                        Payment Terms
+                      </div>
+                    </td>
+                    {compareSuppliers.map(s => (
+                      <td key={s.id} className="quot-compare__value">
+                        <div className="quot-compare__value-wrap">
+                          <span className="quot-compare__value-main">{s.paymentTerms}</span>
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                  {/* Vendor Score */}
+                  <tr>
+                    <td className="quot-compare__param-label">
+                      <div className="quot-compare__param-inner">
+                        <span className="quot-compare__param-icon quot-compare__param-icon--score"><TrendingUp size={14} /></span>
+                        Vendor Score
+                      </div>
+                    </td>
+                    {compareSuppliers.map(s => (
+                      <td key={s.id} className={`quot-compare__value ${s.score === bestValues.score ? 'quot-compare__value--best' : ''}`}>
+                        <div className="quot-compare__score-cell">
+                          <div className="quot-score">
+                            <div className="quot-score__bar">
+                              <div
+                                className={`quot-score__fill quot-score__fill--${getScoreClass(s.score)}`}
+                                style={{ width: `${s.score}%` }}
+                              />
+                            </div>
+                            <span className="quot-score__value">{s.score}</span>
+                          </div>
+                          {s.score === bestValues.score && (
+                            <span className="quot-compare__best-chip"><Crown size={11} /> Best</span>
+                          )}
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                  {/* Items Count */}
+                  <tr>
+                    <td className="quot-compare__param-label">
+                      <div className="quot-compare__param-inner">
+                        <span className="quot-compare__param-icon quot-compare__param-icon--items"><ClipboardList size={14} /></span>
+                        Items Quoted
+                      </div>
+                    </td>
+                    {compareSuppliers.map(s => (
+                      <td key={s.id} className="quot-compare__value">
+                        <div className="quot-compare__value-wrap">
+                          <span className="quot-compare__value-main">{s.itemCount} items</span>
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                  {/* Status */}
+                  <tr>
+                    <td className="quot-compare__param-label">
+                      <div className="quot-compare__param-inner">
+                        <span className="quot-compare__param-icon quot-compare__param-icon--status"><CheckCircle2 size={14} /></span>
+                        Status
+                      </div>
+                    </td>
+                    {compareSuppliers.map(s => (
+                      <td key={s.id} className="quot-compare__value">
+                        <div className="quot-compare__value-wrap">
+                          <span className={`quot-badge quot-badge--${s.status}`}>
+                            {STATUS_LABELS[s.status]}
+                          </span>
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                  {/* Submitted Date */}
+                  <tr>
+                    <td className="quot-compare__param-label">
+                      <div className="quot-compare__param-inner">
+                        <span className="quot-compare__param-icon quot-compare__param-icon--date"><Clock size={14} /></span>
+                        Submitted
+                      </div>
+                    </td>
+                    {compareSuppliers.map(s => (
+                      <td key={s.id} className="quot-compare__value">
+                        <div className="quot-compare__value-wrap">
+                          <span className="quot-compare__value-main">{formatDate(s.submittedAt)}</span>
+                        </div>
+                      </td>
+                    ))}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          ) : selectedRFQ ? (
+            <div className="quot-compare__empty">
+              <div className="quot-compare__empty-icon"><FileText size={40} /></div>
+              <h3>No suppliers found</h3>
+              <p>No supplier quotations found for this RFQ</p>
+            </div>
+          ) : (
+            <div className="quot-compare__empty">
+              <div className="quot-compare__empty-icon"><Search size={40} /></div>
+              <h3>Select an RFQ</h3>
+              <p>Search and select an RFQ number above to compare suppliers</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ── Summary Cards ──────────────────────────────────── */}
       <div className="quot-summary">
