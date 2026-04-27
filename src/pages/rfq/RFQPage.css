@@ -1,0 +1,514 @@
+/* ═══════════════════════════════════════════════════════════
+   Heliflow — RFQ Page Styles
+   ═══════════════════════════════════════════════════════════ */
+
+.rfq-page {
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ─── Page Header ────────────────────────────────────────── */
+
+.rfq-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.rfq-page__header-left h1 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.rfq-page__header-left p {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.rfq-page__create-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--primary-500);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(10, 110, 209, 0.25);
+}
+
+.rfq-page__create-btn:hover {
+  background: var(--primary-600);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(10, 110, 209, 0.35);
+}
+
+.rfq-page__create-btn:active {
+  transform: translateY(0);
+}
+
+/* ─── Toolbar (Search + Filters) ─────────────────────────── */
+
+.rfq-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rfq-toolbar__search {
+  flex: 1;
+  min-width: 240px;
+  position: relative;
+}
+
+.rfq-toolbar__search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-placeholder);
+  pointer-events: none;
+}
+
+.rfq-toolbar__search input {
+  width: 100%;
+  padding: 10px 12px 10px 40px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.rfq-toolbar__search input::placeholder {
+  color: var(--text-placeholder);
+}
+
+.rfq-toolbar__search input:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(10, 110, 209, 0.1);
+}
+
+.rfq-toolbar__filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+
+.rfq-toolbar__filter:hover {
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+}
+
+.rfq-toolbar__filter--active {
+  border-color: var(--primary-500);
+  color: var(--primary-500);
+  background: rgba(10, 110, 209, 0.05);
+}
+
+/* ─── Stats Strip ────────────────────────────────────────── */
+
+.rfq-stats {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rfq-stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.2s, border-color 0.2s, transform 0.15s;
+}
+
+.rfq-stat:hover {
+  transform: translateY(-1px);
+}
+
+.rfq-stat--all {
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+}
+
+.rfq-stat--draft {
+  background: rgba(148, 163, 184, 0.1);
+  color: #64748b;
+}
+
+.rfq-stat--sent {
+  background: rgba(10, 110, 209, 0.08);
+  color: var(--primary-500);
+}
+
+.rfq-stat--progress {
+  background: rgba(233, 115, 12, 0.08);
+  color: var(--warning-500);
+}
+
+.rfq-stat--closed {
+  background: rgba(16, 126, 62, 0.08);
+  color: var(--success-500);
+}
+
+.rfq-stat--cancelled {
+  background: rgba(187, 0, 0, 0.06);
+  color: var(--danger-500);
+}
+
+.rfq-stat--active {
+  border-color: currentColor;
+}
+
+.rfq-stat__count {
+  font-weight: 700;
+}
+
+[data-theme="dark"] .rfq-stat--draft {
+  background: rgba(148, 163, 184, 0.12);
+  color: #94a3b8;
+}
+
+/* ─── Table Card ─────────────────────────────────────────── */
+
+.rfq-table-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.rfq-table-wrap {
+  overflow-x: auto;
+}
+
+.rfq-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+
+.rfq-table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-elevated);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s;
+}
+
+.rfq-table th:hover {
+  color: var(--text-primary);
+}
+
+.rfq-table th svg {
+  vertical-align: middle;
+  margin-left: 4px;
+  opacity: 0.4;
+}
+
+.rfq-table td {
+  padding: 14px 16px;
+  font-size: 13px;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.rfq-table tr:last-child td {
+  border-bottom: none;
+}
+
+.rfq-table tbody tr {
+  transition: background 0.15s;
+  cursor: pointer;
+}
+
+.rfq-table tbody tr:hover {
+  background: var(--surface-hover);
+}
+
+/* Cell variants */
+.rfq-table__num {
+  font-weight: 600;
+  color: var(--primary-500);
+  white-space: nowrap;
+}
+
+.rfq-table__title-cell {
+  max-width: 260px;
+}
+
+.rfq-table__title {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+
+.rfq-table__desc {
+  font-size: 12px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-top: 2px;
+}
+
+.rfq-table__creator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rfq-table__avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary-500), var(--primary-400));
+  flex-shrink: 0;
+}
+
+.rfq-table__date {
+  white-space: nowrap;
+  color: var(--text-secondary);
+}
+
+.rfq-table__vendors {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-secondary);
+}
+
+.rfq-table__items-count {
+  font-weight: 600;
+}
+
+/* Status Badge */
+.rfq-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.rfq-badge__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.rfq-badge--DRAFT { background: rgba(148, 163, 184, 0.12); color: #64748b; }
+.rfq-badge--DRAFT .rfq-badge__dot { background: #64748b; }
+
+.rfq-badge--SENT { background: rgba(10, 110, 209, 0.1); color: var(--primary-500); }
+.rfq-badge--SENT .rfq-badge__dot { background: var(--primary-500); }
+
+.rfq-badge--IN_PROGRESS { background: rgba(233, 115, 12, 0.1); color: var(--warning-500); }
+.rfq-badge--IN_PROGRESS .rfq-badge__dot { background: var(--warning-500); }
+
+.rfq-badge--CLOSED { background: rgba(16, 126, 62, 0.1); color: var(--success-500); }
+.rfq-badge--CLOSED .rfq-badge__dot { background: var(--success-500); }
+
+.rfq-badge--CANCELLED { background: rgba(187, 0, 0, 0.08); color: var(--danger-500); }
+.rfq-badge--CANCELLED .rfq-badge__dot { background: var(--danger-500); }
+
+[data-theme="dark"] .rfq-badge--DRAFT { background: rgba(148, 163, 184, 0.14); color: #94a3b8; }
+[data-theme="dark"] .rfq-badge--DRAFT .rfq-badge__dot { background: #94a3b8; }
+
+/* Actions column */
+.rfq-table__actions {
+  display: flex;
+  gap: 4px;
+}
+
+.rfq-table__action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.rfq-table__action-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-primary);
+}
+
+/* ─── Empty State ────────────────────────────────────────── */
+
+.rfq-empty {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.rfq-empty__icon {
+  color: var(--text-placeholder);
+  margin-bottom: 16px;
+}
+
+.rfq-empty__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.rfq-empty__desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* ─── Pagination ─────────────────────────────────────────── */
+
+.rfq-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.rfq-pagination__info {
+  font-weight: 500;
+}
+
+.rfq-pagination__btns {
+  display: flex;
+  gap: 6px;
+}
+
+.rfq-pagination__btn {
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.rfq-pagination__btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+
+.rfq-pagination__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.rfq-pagination__btn--active {
+  background: var(--primary-500);
+  color: #fff;
+  border-color: var(--primary-500);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Responsive
+   ═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .rfq-page__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .rfq-page__header-left h1 {
+    font-size: 20px;
+  }
+
+  .rfq-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rfq-toolbar__search {
+    min-width: 100%;
+  }
+
+  .rfq-toolbar__filters {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .rfq-stats {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+  }
+
+  .rfq-stat {
+    flex-shrink: 0;
+  }
+
+  .rfq-pagination {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+}

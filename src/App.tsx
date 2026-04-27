@@ -5,6 +5,18 @@ import { ProtectedRoute } from './router/ProtectedRoute';
 import AppLayout from './components/layout/AppLayout';
 import LoginPage from './pages/auth/LoginPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
+import RFQPage from './pages/rfq/RFQPage';
+import CreateRFQPage from './pages/rfq/CreateRFQPage';
+import QuotationsPage from './pages/quotations/QuotationsPage';
+import UsersPage from './pages/admin/UsersPage';
+import RolesPermissionsPage from './pages/admin/RolesPermissionsPage';
+import ApprovalsPage from './pages/approvals/ApprovalsPage';
+import ApprovalLevelsPage from './pages/admin/ApprovalLevelsPage';
+import VendorsPage from './pages/vendors/VendorsPage';
+import PurchaseOrdersPage from './pages/purchase-orders/PurchaseOrdersPage';
+import DocumentsPage from './pages/documents/DocumentsPage';
+import NotificationsPage from './pages/notifications/NotificationsPage';
+import AuditTrailPage from './pages/audit/AuditTrailPage';
 
 export default function App() {
   return (
@@ -19,6 +31,18 @@ export default function App() {
             <Route element={<ProtectedRoute />}>
               <Route element={<AppLayout />}>
                 <Route path="/dashboard" element={<DashboardPage />} />
+                <Route path="/rfq" element={<RFQPage />} />
+                <Route path="/rfq/create" element={<CreateRFQPage />} />
+                <Route path="/quotations" element={<QuotationsPage />} />
+                <Route path="/admin/users" element={<UsersPage />} />
+                <Route path="/admin/roles-permissions" element={<RolesPermissionsPage />} />
+                <Route path="/approvals" element={<ApprovalsPage />} />
+                <Route path="/admin/approval-levels" element={<ApprovalLevelsPage />} />
+                <Route path="/vendors" element={<VendorsPage />} />
+                <Route path="/purchase-orders" element={<PurchaseOrdersPage />} />
+                <Route path="/documents" element={<DocumentsPage />} />
+                <Route path="/notifications" element={<NotificationsPage />} />
+                <Route path="/audit" element={<AuditTrailPage />} />
               </Route>
             </Route>
 

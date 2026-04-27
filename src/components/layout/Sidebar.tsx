@@ -5,7 +5,6 @@ import {
   ClipboardList,
   ShoppingCart,
   Users,
-  Globe,
   CheckSquare,
   FolderOpen,
   Bell,
@@ -55,7 +54,6 @@ const NAV_SECTIONS: NavSection[] = [
     title: 'Suppliers',
     items: [
       { label: 'Vendors', icon: <Users size={19} />, path: '/vendors' },
-      { label: 'Vendor Portal', icon: <Globe size={19} />, path: '/vendor-portal' },
     ],
   },
   {
