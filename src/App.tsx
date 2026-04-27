@@ -17,6 +17,10 @@ import PurchaseOrdersPage from './pages/purchase-orders/PurchaseOrdersPage';
 import DocumentsPage from './pages/documents/DocumentsPage';
 import NotificationsPage from './pages/notifications/NotificationsPage';
 import AuditTrailPage from './pages/audit/AuditTrailPage';
+import VendorPortalLayout from './components/layout/VendorPortalLayout';
+import VendorDashboard from './pages/vendor/VendorDashboard';
+import VendorRFQsPage from './pages/vendor/VendorRFQsPage';
+import VendorQuotationsPage from './pages/vendor/VendorQuotationsPage';
 
 export default function App() {
   return (
@@ -26,6 +30,15 @@ export default function App() {
           <Routes>
             {/* Public */}
             <Route path="/login" element={<LoginPage />} />
+
+            {/* Vendor Portal Routes */}
+            <Route element={<ProtectedRoute requireVendor />}>
+              <Route element={<AppLayout />}>
+                <Route path="/vendor/dashboard" element={<VendorDashboard />} />
+                <Route path="/vendor/rfqs" element={<VendorRFQsPage />} />
+                <Route path="/vendor/quotations" element={<VendorQuotationsPage />} />
+              </Route>
+            </Route>
 
             {/* Protected — wrapped in AppLayout (Sidebar + TopBar) */}
             <Route element={<ProtectedRoute />}>

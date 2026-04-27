@@ -3,20 +3,22 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { Eye, EyeOff, AlertCircle, Sun, Moon } from 'lucide-react';
+import { isVendor } from '../../utils/rbac';
 import heliflowLogo from '../../assets/heliflow.png';
 import './LoginPage.css';
 
 export default function LoginPage() {
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const { login, isAuthenticated, isLoading, roles } = useAuth();
   const { isDark, toggleTheme } = useTheme();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isVendorMode, setIsVendorMode] = useState(false);
 
   if (!isLoading && isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return isVendor(roles) ? <Navigate to="/vendor/dashboard" replace /> : <Navigate to="/dashboard" replace />;
   }
 
   const handleSubmit = async (e: FormEvent) => {
@@ -105,10 +107,38 @@ export default function LoginPage() {
             <span className="sap-login__mobile-title">Heliflow</span>
           </div>
 
+          {/* Tab Toggle */}
+          <div className="sap-login__tab-toggle">
+            <button
+              type="button"
+              className={`sap-login__tab ${!isVendorMode ? 'sap-login__tab--active' : ''}`}
+              onClick={() => {
+                setIsVendorMode(false);
+                setError('');
+              }}
+            >
+              Employee
+            </button>
+            <button
+              type="button"
+              className={`sap-login__tab ${isVendorMode ? 'sap-login__tab--active' : ''}`}
+              onClick={() => {
+                setIsVendorMode(true);
+                setError('');
+              }}
+            >
+              Vendor
+            </button>
+          </div>
+
           <div className="sap-login__form-header">
-            <h2 className="sap-login__form-title">Sign In</h2>
+            <h2 className="sap-login__form-title">
+              {isVendorMode ? 'Vendor Portal' : 'Sign In'}
+            </h2>
             <p className="sap-login__form-subtitle">
-              Enter your credentials to access the platform
+              {isVendorMode
+                ? 'Enter your vendor credentials to access the portal'
+                : 'Enter your credentials to access the platform'}
             </p>
           </div>
 
@@ -184,46 +214,90 @@ export default function LoginPage() {
           <div className="sap-login__demo">
             <div className="sap-login__demo-header">
               <span className="sap-login__demo-line" />
-              <span className="sap-login__demo-label">Demo Users</span>
+              <span className="sap-login__demo-label">
+                {isVendorMode ? 'Vendor Accounts' : 'Demo Users'}
+              </span>
               <span className="sap-login__demo-line" />
             </div>
 
             <div className="sap-login__demo-list">
-              <button
-                type="button"
-                className="sap-login__demo-btn"
-                onClick={() => fillCredentials('admin', 'admin123')}
-              >
-                <span className="sap-login__demo-badge sap-login__demo-badge--admin">SA</span>
-                <div className="sap-login__demo-info">
-                  <span className="sap-login__demo-name">System Administrator</span>
-                  <span className="sap-login__demo-hint">admin / admin123</span>
-                </div>
-              </button>
+              {isVendorMode ? (
+                <>
+                  <button
+                    type="button"
+                    className="sap-login__demo-btn"
+                    onClick={() => fillCredentials('vendor1', 'vendor123')}
+                  >
+                    <span className="sap-login__demo-badge sap-login__demo-badge--vendor">V1</span>
+                    <div className="sap-login__demo-info">
+                      <span className="sap-login__demo-name">Acme Tech Solutions</span>
+                      <span className="sap-login__demo-hint">vendor1 / vendor123</span>
+                    </div>
+                  </button>
 
-              <button
-                type="button"
-                className="sap-login__demo-btn"
-                onClick={() => fillCredentials('procurement', 'proc123')}
-              >
-                <span className="sap-login__demo-badge sap-login__demo-badge--proc">PM</span>
-                <div className="sap-login__demo-info">
-                  <span className="sap-login__demo-name">Procurement Manager</span>
-                  <span className="sap-login__demo-hint">procurement / proc123</span>
-                </div>
-              </button>
+                  <button
+                    type="button"
+                    className="sap-login__demo-btn"
+                    onClick={() => fillCredentials('vendor2', 'vendor123')}
+                  >
+                    <span className="sap-login__demo-badge sap-login__demo-badge--vendor">V2</span>
+                    <div className="sap-login__demo-info">
+                      <span className="sap-login__demo-name">Global Supply Corp</span>
+                      <span className="sap-login__demo-hint">vendor2 / vendor123</span>
+                    </div>
+                  </button>
 
-              <button
-                type="button"
-                className="sap-login__demo-btn"
-                onClick={() => fillCredentials('finance', 'fin123')}
-              >
-                <span className="sap-login__demo-badge sap-login__demo-badge--fin">FA</span>
-                <div className="sap-login__demo-info">
-                  <span className="sap-login__demo-name">Finance Approver</span>
-                  <span className="sap-login__demo-hint">finance / fin123</span>
-                </div>
-              </button>
+                  <button
+                    type="button"
+                    className="sap-login__demo-btn"
+                    onClick={() => fillCredentials('vendor3', 'vendor123')}
+                  >
+                    <span className="sap-login__demo-badge sap-login__demo-badge--vendor">V3</span>
+                    <div className="sap-login__demo-info">
+                      <span className="sap-login__demo-name">Quality Parts Ltd</span>
+                      <span className="sap-login__demo-hint">vendor3 / vendor123</span>
+                    </div>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="sap-login__demo-btn"
+                    onClick={() => fillCredentials('admin', 'admin123')}
+                  >
+                    <span className="sap-login__demo-badge sap-login__demo-badge--admin">SA</span>
+                    <div className="sap-login__demo-info">
+                      <span className="sap-login__demo-name">System Administrator</span>
+                      <span className="sap-login__demo-hint">admin / admin123</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="sap-login__demo-btn"
+                    onClick={() => fillCredentials('procurement', 'proc123')}
+                  >
+                    <span className="sap-login__demo-badge sap-login__demo-badge--proc">PM</span>
+                    <div className="sap-login__demo-info">
+                      <span className="sap-login__demo-name">Procurement Manager</span>
+                      <span className="sap-login__demo-hint">procurement / proc123</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="sap-login__demo-btn"
+                    onClick={() => fillCredentials('finance', 'fin123')}
+                  >
+                    <span className="sap-login__demo-badge sap-login__demo-badge--fin">FA</span>
+                    <div className="sap-login__demo-info">
+                      <span className="sap-login__demo-name">Finance Approver</span>
+                      <span className="sap-login__demo-hint">finance / fin123</span>
+                    </div>
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

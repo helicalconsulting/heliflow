@@ -1,5 +1,6 @@
 import { USE_MOCK } from '../config/mock';
-import type { AuthResponse, LoginPayload, User } from '../types';
+import { ALL_MOCK_USERS, MOCK_TOKEN } from '../config/mockData';
+import type { AuthResponse, LoginPayload } from '../types';
 
 // ─── API Base ───────────────────────────────────────────────
 
@@ -7,52 +8,7 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 // ─── Mock Data ──────────────────────────────────────────────
 
-const MOCK_USERS: (User & { password: string; roles: string[] })[] = [
-  {
-    id: 1,
-    username: 'admin',
-    email: 'admin@heliflow.com',
-    fullName: 'System Administrator',
-    companyCode: 'HFL',
-    department: 'IT',
-    phone: '+91-9876543210',
-    isActive: true,
-    lastLoginAt: new Date().toISOString(),
-    createdAt: '2025-01-01T00:00:00.000Z',
-    password: 'admin123',
-    roles: ['Super Admin'],
-  },
-  {
-    id: 2,
-    username: 'procurement',
-    email: 'procurement@heliflow.com',
-    fullName: 'Procurement Manager',
-    companyCode: 'HFL',
-    department: 'Supply Chain',
-    phone: '+91-9876543211',
-    isActive: true,
-    lastLoginAt: new Date().toISOString(),
-    createdAt: '2025-01-01T00:00:00.000Z',
-    password: 'proc123',
-    roles: ['Procurement Manager'],
-  },
-  {
-    id: 3,
-    username: 'finance',
-    email: 'finance@heliflow.com',
-    fullName: 'Finance Approver',
-    companyCode: 'HFL',
-    department: 'Finance',
-    phone: '+91-9876543212',
-    isActive: true,
-    lastLoginAt: new Date().toISOString(),
-    createdAt: '2025-01-01T00:00:00.000Z',
-    password: 'fin123',
-    roles: ['Finance Approver'],
-  },
-];
-
-const MOCK_TOKEN = 'mock-jwt-token-heliflow-2025';
+const MOCK_USERS = ALL_MOCK_USERS;
 
 // ─── Storage Keys ───────────────────────────────────────────
 

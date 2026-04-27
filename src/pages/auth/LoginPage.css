@@ -191,6 +191,37 @@
   margin-bottom: 28px;
 }
 
+/* Tab Toggle */
+.sap-login__tab-toggle {
+  display: flex;
+  gap: 1px;
+  margin-bottom: 24px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--border);
+}
+
+.sap-login__tab {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  background: var(--surface-card);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.sap-login__tab:hover {
+  background: var(--surface-hover);
+}
+
+.sap-login__tab--active {
+  background: var(--primary-500);
+  color: #fff;
+}
+
 .sap-login__form-title {
   font-size: 24px;
   font-weight: 700;
@@ -437,6 +468,7 @@
 .sap-login__demo-badge--admin { background: #354a5f; }
 .sap-login__demo-badge--proc  { background: var(--primary-500); }
 .sap-login__demo-badge--fin   { background: var(--success-500); }
+.sap-login__demo-badge--vendor { background: #f97316; }
 
 .sap-login__demo-info {
   display: flex;

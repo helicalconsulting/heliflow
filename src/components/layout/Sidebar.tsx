@@ -11,10 +11,10 @@ import {
   History,
   UserCog,
   Shield,
-  Layers,
   PanelLeftClose,
 } from 'lucide-react';
 import heliflowLogo from '../../assets/heliflow.png';
+import { useNavigationMenu } from '../../hooks/useRoleAccess';
 import './Sidebar.css';
 
 // ─── Navigation config ──────────────────────────────────────
@@ -30,55 +30,21 @@ interface NavSection {
   items: NavItem[];
 }
 
-const NAV_SECTIONS: NavSection[] = [
-  {
-    title: 'Main',
-    items: [
-      { label: 'Dashboard', icon: <LayoutDashboard size={19} />, path: '/dashboard' },
-    ],
-  },
-  {
-    title: 'Procurement',
-    items: [
-      { label: 'RFQ', icon: <FileText size={19} />, path: '/rfq' },
-      { label: 'Quotations', icon: <ClipboardList size={19} />, path: '/quotations' },
-    ],
-  },
-  {
-    title: 'Orders',
-    items: [
-      { label: 'Purchase Orders', icon: <ShoppingCart size={19} />, path: '/purchase-orders' },
-    ],
-  },
-  {
-    title: 'Suppliers',
-    items: [
-      { label: 'Vendors', icon: <Users size={19} />, path: '/vendors' },
-    ],
-  },
-  {
-    title: 'Workflow',
-    items: [
-      { label: 'Approvals', icon: <CheckSquare size={19} />, path: '/approvals' },
-    ],
-  },
-  {
-    title: 'Resources',
-    items: [
-      { label: 'Documents', icon: <FolderOpen size={19} />, path: '/documents' },
-      { label: 'Notifications', icon: <Bell size={19} />, path: '/notifications' },
-      { label: 'Audit Trail', icon: <History size={19} />, path: '/audit' },
-    ],
-  },
-  {
-    title: 'Admin',
-    items: [
-      { label: 'Users', icon: <UserCog size={19} />, path: '/admin/users' },
-      { label: 'Roles & Permissions', icon: <Shield size={19} />, path: '/admin/roles-permissions' },
-      { label: 'Approval Levels', icon: <Layers size={19} />, path: '/admin/approval-levels' },
-    ],
-  },
-];
+// Icon mapping for menu items
+const ICON_MAP: Record<string, React.ReactNode> = {
+  Dashboard: <LayoutDashboard size={19} />,
+  'RFQ Management': <FileText size={19} />,
+  Quotations: <ClipboardList size={19} />,
+  'Purchase Orders': <ShoppingCart size={19} />,
+  Vendors: <Users size={19} />,
+  Approvals: <CheckSquare size={19} />,
+  Documents: <FolderOpen size={19} />,
+  Notifications: <Bell size={19} />,
+  'Audit Trail': <History size={19} />,
+  Administration: <Shield size={19} />,
+  'My RFQs': <FileText size={19} />,
+  'My Quotations': <ClipboardList size={19} />,
+};
 
 // ─── Component ──────────────────────────────────────────────
 
@@ -96,6 +62,73 @@ export default function Sidebar({
   onMobileClose,
 }: SidebarProps) {
   const location = useLocation();
+  const menuItems = useNavigationMenu();
+
+  // Convert menu items to nav sections
+  const NAV_SECTIONS: NavSection[] = [
+    {
+      title: 'Main',
+      items: menuItems
+        .filter((item) => item.id === 'dashboard' || item.id === 'vendor-dashboard')
+        .map((item) => ({
+          label: item.label,
+          icon: ICON_MAP[item.label] || <LayoutDashboard size={19} />,
+          path: item.path,
+        })),
+    },
+    {
+      title: 'Procurement',
+      items: menuItems
+        .filter((item) => ['rfq', 'quotations', 'vendor-rfqs', 'vendor-quotations'].includes(item.id))
+        .map((item) => ({
+          label: item.label,
+          icon: ICON_MAP[item.label] || <FileText size={19} />,
+          path: item.path,
+        })),
+    },
+    {
+      title: 'Orders',
+      items: menuItems
+        .filter((item) => item.id === 'purchase-orders')
+        .map((item) => ({
+          label: item.label,
+          icon: ICON_MAP[item.label] || <ShoppingCart size={19} />,
+          path: item.path,
+        })),
+    },
+    {
+      title: 'Suppliers',
+      items: menuItems
+        .filter((item) => item.id === 'vendors')
+        .map((item) => ({
+          label: item.label,
+          icon: ICON_MAP[item.label] || <Users size={19} />,
+          path: item.path,
+        })),
+    },
+    {
+      title: 'Workflow',
+      items: menuItems
+        .filter((item) => item.id === 'approvals')
+        .map((item) => ({
+          label: item.label,
+          icon: ICON_MAP[item.label] || <CheckSquare size={19} />,
+          path: item.path,
+        })),
+    },
+    {
+      title: 'Admin',
+      items: menuItems
+        .filter((item) => item.id === 'admin')
+        .flatMap((item) =>
+          item.children?.map((child) => ({
+            label: child.label,
+            icon: ICON_MAP[child.label] || <UserCog size={19} />,
+            path: child.path,
+          })) || []
+        ),
+    },
+  ].filter((section) => section.items.length > 0);
 
   const sidebarClasses = [
     'sidebar',
@@ -131,8 +164,8 @@ export default function Sidebar({
               <span className="sidebar__section-label">{section.title}</span>
               {section.items.map((item) => {
                 const isActive =
-                  item.path === '/dashboard'
-                    ? location.pathname === '/dashboard'
+                  item.path === '/dashboard' || item.path === '/vendor/dashboard'
+                    ? location.pathname === item.path
                     : location.pathname.startsWith(item.path);
 
                 return (

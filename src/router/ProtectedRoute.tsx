@@ -1,12 +1,14 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { isVendor } from '../utils/rbac';
 
 interface ProtectedRouteProps {
   allowedRoles?: string[];
+  requireVendor?: boolean;
 }
 
-export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
-  const { isAuthenticated, isLoading, hasAnyRole } = useAuth();
+export function ProtectedRoute({ allowedRoles, requireVendor }: ProtectedRouteProps) {
+  const { isAuthenticated, isLoading, hasAnyRole, roles } = useAuth();
 
   // Show nothing while checking session (prevents flash)
   if (isLoading) {
@@ -20,6 +22,14 @@ export function ProtectedRoute({ allowedRoles }: ProtectedRouteProps) {
   // Not logged in → redirect to login
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Check if vendor portal route
+  if (requireVendor) {
+    if (!isVendor(roles)) {
+      return <Navigate to="/dashboard" replace />;
+    }
+    return <Outlet />;
   }
 
   // Logged in but wrong role → redirect to dashboard
