@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import {
   ShoppingCart,
   Search,
@@ -16,11 +16,9 @@ import {
   ChevronRight,
   LayoutList,
   LayoutGrid,
-  MapPin,
   Calendar,
   IndianRupee,
   AlertTriangle,
-  RotateCcw,
 } from 'lucide-react';
 import './PurchaseOrdersPage.css';
 

@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import {
-  History, Search, Filter, ChevronLeft, ChevronRight, Eye, X, Clock,
-  UserCog, ShoppingCart, FileText, CheckSquare, Shield, Users, Settings,
-  LogIn, LogOut, Edit3, Trash2, Plus, Download,
+  History, Search, ChevronLeft, ChevronRight, X, Clock,
+  UserCog, CheckSquare, Settings,
+  LogIn, Edit3, Trash2, Plus, Download,
 } from 'lucide-react';
 import './AuditTrailPage.css';
 

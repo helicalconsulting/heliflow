@@ -4,11 +4,6 @@ import {
   Plus,
   Search,
   FileText,
-  Send,
-  Clock,
-  CheckCircle2,
-  XCircle,
-  Edit3,
   Eye,
   Trash2,
   Copy,
@@ -89,14 +84,6 @@ const STATUS_LABELS: Record<RFQStatus, string> = {
   IN_PROGRESS: 'In Progress',
   CLOSED: 'Closed',
   CANCELLED: 'Cancelled',
-};
-
-const STATUS_ICONS: Record<RFQStatus, React.ReactNode> = {
-  DRAFT: <Edit3 size={12} />,
-  SENT: <Send size={12} />,
-  IN_PROGRESS: <Clock size={12} />,
-  CLOSED: <CheckCircle2 size={12} />,
-  CANCELLED: <XCircle size={12} />,
 };
 
 // ─── Component ──────────────────────────────────────────────

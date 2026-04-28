@@ -15,11 +15,9 @@ import {
   ClipboardList,
   Filter,
   MessageSquare,
-  User,
   ChevronLeft,
   ChevronRight,
   AlertTriangle,
-  Info,
 } from 'lucide-react';
 import './ApprovalsPage.css';
 

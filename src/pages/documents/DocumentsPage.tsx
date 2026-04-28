@@ -10,9 +10,7 @@ import {
   FileText,
   FileSpreadsheet,
   FileImage,
-  File,
   FilePlus,
-  Filter,
   ChevronLeft,
   ChevronRight,
   LayoutList,
@@ -21,8 +19,6 @@ import {
   Files,
   Clock,
   Link2,
-  Calendar,
-  User,
 } from 'lucide-react';
 import './DocumentsPage.css';
 

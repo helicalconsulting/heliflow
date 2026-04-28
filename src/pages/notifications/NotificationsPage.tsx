@@ -1,8 +1,8 @@
 import { useState, useMemo, useCallback } from 'react';
 import {
-  Bell, BellOff, Search, CheckCheck, Trash2, Eye, X,
-  ShoppingCart, FileText, CheckSquare, AlertTriangle, Info, Clock,
-  ClipboardList, Users, Shield, ChevronLeft, ChevronRight, MailOpen, Mail,
+  Bell, BellOff, Search, CheckCheck, Trash2, X,
+  ShoppingCart, FileText, CheckSquare, AlertTriangle, Clock,
+  Users, Shield, ChevronLeft, ChevronRight, MailOpen, Mail,
 } from 'lucide-react';
 import './NotificationsPage.css';
 
